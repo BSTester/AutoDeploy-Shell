@@ -271,7 +271,7 @@ function jsGrunt(){
 	fi
 }
 
-#部署分支路径
+#SVN配置库代码路径
 svnPath="https://hostname/svn/project/trunk"	
 #Tag路径								
 tagsPath="https://hostname/svn/project/tags/release"	
@@ -326,13 +326,13 @@ if [[ ("$oldVersion" -gt 0) && ("$newVersion" -gt 0) ]];then	#判断是否是数
 	tar zcvf upgrade${env}.tar.gz upgrade${env}_$oldVersion-$newVersion/
 	tar zcvf ali_upgrade/upgrade_$oldVersion-$newVersion.tar.gz upgrade${env}_$oldVersion-$newVersion/
 	rm -rf upgrade${env}_$oldVersion-$newVersion
-    printLog "打升级包完成"
+	printLog "打升级包完成"
 	cp -rfv $downdir/ downgrade${env}_$newVersion-$oldVersion/
 	tar zcvf downgrade${env}.tar.gz downgrade${env}_$newVersion-$oldVersion/
 	rm -rf downgrade${env}_$newVersion-$oldVersion
 	printLog "打还原包完成"
-    newVersion=`svnDo $userName $passWord gr $svnPath 1`
-    newTagsVersion=`svnDo $userName $passWord gr $tagsPath 1`
+	newVersion=`svnDo $userName $passWord gr $svnPath 1`
+	newTagsVersion=`svnDo $userName $passWord gr $tagsPath 1`
 	echo "auto_tags:生产环境打包,SVN版本号[$newVersion]" > svnLog.txt
 	svnDo $userName $passWord log $svnPath $oldVersion:$newVersion >> svnLog.txt
 	if [ "$newVersion" -gt "$newTagsVersion" ];then
