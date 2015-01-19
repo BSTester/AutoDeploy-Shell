@@ -125,15 +125,15 @@ password="password"
 #数据库名
 dbname="testdb"
 #数据库sql文件
-sqlFile="./auto.sql"
+sqlFile="auto.sql"
 #环境(test|pre|PRO)                                   
 env="test"
 #服务器部署绝对路径                                  
 envURL="/website/html"  
 
-deploy "./upgrade${env}" "./delList${env}Up.txt" "${envURL}"
+deploy "upgrade${env}" "delList${env}Up.txt" "${envURL}"
 updateSql "${host}" "${username}" "${password}" "${dbname}" "${sqlFile}"
-backup "./upgrade${env}.tar.gz" "/home/www/backup"
-backup "./delList${env}Up.txt" "/home/www/backup"
-backup "./downgrade${env}.tar.gz" "/home/www/backup"
-backup "./delList${env}Down.txt" "/home/www/backup"
+backup "upgrade${env}.tar.gz" "/home/www/backup"
+backup "delList${env}Up.txt" "/home/www/backup"
+backup "downgrade${env}.tar.gz" "/home/www/backup"
+backup "delList${env}Down.txt" "/home/www/backup"
