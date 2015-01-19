@@ -11,14 +11,14 @@
 #Param: logInfo(日志信息)
 logPath="`pwd`"
 function printLog(){
-    errorCode=$?
+    local errorCode=$?
+    local logInfo=$1
     if [ $# -ne 1 ];then
-        echo `date +"%Y-%m-%d %H:%M:%S"` "Usage:printLog logInfo" | tee --append ${logPath}/svnRuntimeLog.txt
+        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] Usage:printLog logInfo" | tee --append ${logPath}/svnRuntimeLog.txt
         exit 1
     fi
-    logInfo=$1
-    if [ $errorCode -ne 0 ];then
-        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR]#${logInfo}" | tee --append ${logPath}/svnRuntimeLog.txt
+    if [ ${errorCode} -ne 0 ];then
+        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] ${logInfo}" | tee --append ${logPath}/svnRuntimeLog.txt
         return 1
     else
         echo `date +"%Y-%m-%d %H:%M:%S"` "${logInfo}" >> ${logPath}/svnRuntimeLog.txt
@@ -31,22 +31,22 @@ function printLog(){
 #Param: fileName(备份文件名),backupPath(备份路径)
 function backup(){
     if [ $# -ne 2 ];then
-        printLog "Usage:backup fileName backupPath"
+        printLog "[ERROR] Usage:backup fileName backupPath"
         exit 1
     fi
-    fileName=$1
-    backupPath=$2
-    bakDate=`date +'%Y%m%d'`
-    bakTime=`date +'%H%M'`
-    delTime=`date -d -7day +'%Y%m%d'`
+    local fileName=$1
+    local backupPath=$2
+    local bakDate=`date +'%Y%m%d'`
+    local bakTime=`date +'%H%M'`
+    local delTime=`date -d -7day +'%Y%m%d'`
     echo "备份文件[${fileName}]至[${backupPath}/${bakDate}/${bakTime}-${fileName}]"
     if [ -d ${backupPath}/${bakDate} ];then
         mv ${fileName} ${backupPath}/${bakDate}/${bakTime}-${fileName}
-        printLog "备份文件[${fileName}]至[${backupPath}/${bakDate}/${bakTime}-${fileName}]"
+        printLog "备份文件[${fileName}]至[${backupPath}/${bakDate}/${bakTime}-${fileName}]" || exit 1
     else
         mkdir -p ${backupPath}/${bakDate}
         mv ${fileName} ${backupPath}/${bakDate}/${bakTime}-${fileName}
-        printLog "备份文件[${fileName}]至[${backupPath}/${bakDate}/${bakTime}-${fileName}]"
+        printLog "备份文件[${fileName}]至[${backupPath}/${bakDate}/${bakTime}-${fileName}]" || exit 1
     fi
     echo "删除7天前的备份文件[${backupPath}/${delTime}]"
     rm -rf ${backupPath}/${delTime}    
@@ -59,14 +59,13 @@ function backup(){
 #Param: packageFile(.tar.gz部署包名),delFile(删除文件列表),projectPath(项目路径)
 function deploy(){
     if [ $# -ne 3 ];then
-        printLog "Usage:deploy packageFile delFile projectPath"
+        printLog "[ERROR] Usage:deploy packageFile delFile projectPath"
         exit 1
     fi
-    packageFile=$1
-    delFile=$2
-    projectPath=$3
+    local packageFile=$1
+    local delFile=$2
+    local projectPath=$3
     if [ -f ${packageFile}.tar.gz ];then
-        rm -rf ${packageFile}_* 
         tar zxvf ${packageFile}.tar.gz
         if [ -f ${delFile} ];then
             cat ${delFile} |
@@ -81,14 +80,13 @@ function deploy(){
         fi
         echo "部署升级包[${packageFile}_*/]至[${projectPath}]"
         chown -R www.www ${packageFile}_*/
-        printLog "更改[${packageFile}_*/]权限为www.www"
+        printLog "更改[${packageFile}_*/]权限为www.www" || exit 1
         \cp -rfv ${packageFile}_*/* ${projectPath}
-        printLog "部署升级包[${packageFile}_*/]至[${projectPath}]"
+        printLog "部署升级包[${packageFile}_*/]至[${projectPath}]" || exit 1
         rm -rf ${packageFile}_*
         printLog "删除升级包[${packageFile}_*]"
     else
-    	printLog "升级包[${packageFile}.tar.gz]不存在!"
-    	exit 1
+    	printLog "升级包[${packageFile}.tar.gz]不存在!" && exit 1
     fi
 }
 
@@ -98,19 +96,19 @@ function deploy(){
 #Param: host(数据库主机地址),username(数据库用户名),password(数据库密码),dbname(数据库名),sqlFile(数据库sql文件)
 function updateSql(){
     if [ $# -ne 5 ];then
-        printLog "Usage:updateSql host username password dbname sqlFile"
+        printLog "[ERROR] Usage:updateSql host username password dbname sqlFile"
         exit 1
     fi
-    host=$1
-    username=$2
-    password=$3
-    dbname=$4
-    sqlFile=$5
+    local host=$1
+    local username=$2
+    local password=$3
+    local dbname=$4
+    local sqlFile=$5
     if [ -f ${sqlFile} ];then
-        row=`cat ${sqlFile}`
+        local row=`cat ${sqlFile}`
         if [ "${row}" != "noneLine" ];then
             mysql -u"${username}" -p"${password}" -h"${host}" --default-character-set=utf8 ${dbname} < ${sqlFile}
-            printLog "自动更新数据库[${host}:${dbname}]"
+            printLog "自动更新数据库[${host}:${dbname}]" || exit 1
         fi
     fi 
 }
@@ -131,9 +129,9 @@ env="test"
 #服务器部署绝对路径                                  
 envURL="/website/html"  
 
-deploy "upgrade${env}" "delList${env}Up.txt" "${envURL}"
-updateSql "${host}" "${username}" "${password}" "${dbname}" "${sqlFile}"
-backup "upgrade${env}.tar.gz" "/home/www/backup"
-backup "delList${env}Up.txt" "/home/www/backup"
-backup "downgrade${env}.tar.gz" "/home/www/backup"
-backup "delList${env}Down.txt" "/home/www/backup"
+deploy "upgrade${env}" "delList${env}Up.txt" "${envURL}" || exit 1
+updateSql "${host}" "${username}" "${password}" "${dbname}" "${sqlFile}" || exit 1
+backup "upgrade${env}.tar.gz" "/home/www/backup" || exit 1
+backup "delList${env}Up.txt" "/home/www/backup" || exit 1
+backup "downgrade${env}.tar.gz" "/home/www/backup" || exit 1
+backup "delList${env}Down.txt" "/home/www/backup" || exit 1
