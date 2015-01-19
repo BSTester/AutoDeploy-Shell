@@ -8,7 +8,7 @@
 #Function:  printLog()
 #Author:    归根落叶
 #Todo:  打印日志
-#Usage: logInfo(日志信息)
+#Param: logInfo(日志信息)
 logPath="`pwd`"
 function printLog(){
     errorCode=$?
@@ -28,7 +28,7 @@ function printLog(){
 #Function:  backup()
 #Author:    归根落叶
 #Todo:  备份部署包
-#Usage: fileName(备份文件名),backupPath(备份路径)
+#Param: fileName(备份文件名),backupPath(备份路径)
 function backup(){
     if [ $# -ne 2 ];then
         printLog "Usage:backup fileName backupPath"
@@ -56,7 +56,7 @@ function backup(){
 #Function:  deploy()
 #Author:    归根落叶
 #Todo:  部署项目
-#Usage: packageFile(.tar.gz部署包名),delFile(删除文件列表),projectPath(项目路径)
+#Param: packageFile(.tar.gz部署包名),delFile(删除文件列表),projectPath(项目路径)
 function deploy(){
     if [ $# -ne 3 ];then
         printLog "Usage:deploy packageFile delFile projectPath"
@@ -95,7 +95,7 @@ function deploy(){
 #Function:  updateSql()
 #Author:    归根落叶
 #Todo:  更新数据库
-#Usage: host(数据库主机地址),username(数据库用户名),password(数据库密码),dbname(数据库名),sqlFile(数据库sql文件)
+#Param: host(数据库主机地址),username(数据库用户名),password(数据库密码),dbname(数据库名),sqlFile(数据库sql文件)
 function updateSql(){
     if [ $# -ne 5 ];then
         printLog "Usage:updateSql host username password dbname sqlFile"
