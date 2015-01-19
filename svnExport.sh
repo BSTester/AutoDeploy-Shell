@@ -302,7 +302,7 @@ if [[ ("${oldVersion}" -gt 0) && ("${newVersion}" -gt 0) ]];then    #判断是�
     printLog "从版本[${oldVersion}]升级到新版本[${newVersion}]"
     echo "auto_tags:生产环境打包,SVN版本号[${newVersion}]" > svnLog.txt
     svnDo ${userName} ${passWord} log ${svnPath} ${oldVersion}:${newVersion} >> svnLog.txt
-    if [ "${newVersion}" -gt "$newTagsVersion" ];then
+    if [ "${newVersion}" -gt "${newTagsVersion}" ];then
         svnDo ${userName} ${passWord} copy ${svnPath} ${tagsPath}/tag_${newVersion} ${newVersion} svnLog.txt
     fi
     printLog "删除临时文件"
@@ -333,7 +333,7 @@ if [[ ("${oldVersion}" -gt 0) && ("${newVersion}" -gt 0) ]];then    #判断是�
     newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1`
     echo "auto_tags:生产环境打包,SVN版本号[${newVersion}]" > svnLog.txt
     svnDo ${userName} ${passWord} log ${svnPath} ${oldVersion}:${newVersion} >> svnLog.txt
-    if [ "${newVersion}" -gt "$newTagsVersion" ];then
+    if [ "${newVersion}" -gt "${newTagsVersion}" ];then
         svnDo ${userName} ${passWord} copy ${svnPath} ${tagsPath}/tag_${newVersion} ${newVersion} svnLog.txt
     fi  
     rm -f svnLog.txt
