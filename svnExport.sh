@@ -314,6 +314,7 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
     if [[ ${newVersion} -gt ${newTagsVersion} ]];then
         svnDo ${userName} ${passWord} copy ${svnPath} ${tagsPath}/tag_${newVersion} ${newVersion} svnLog.txt || exit 1
     fi
+    rm -f svnLog.txt
     ##################### 打SVN标签结束 非正式环境不需要可删除 #####################
     printLog "删除临时文件"
     rm -rf ${updir}
