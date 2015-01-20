@@ -93,34 +93,21 @@ function svnDo(){
             local svnPath=$4
             local localPath=$5
             local revision=$6
-            rm -f delList.txt
-            rm -f upList.txt
-            cat diff.txt |
-            while read row; do
-                local op=`echo ${row} | awk '{print $1}'`
-                if [ ${op} == "D" ];then
-                    echo ${row} | awk '{$1="";print $0}' | awk -F "${svnPath}" '{print $2}' >> delList.txt
-                else
-                    echo ${row} | awk '{$1="";print $0}' | awk -F "${svnPath}" '{print $2}' >> upList.txt
-                fi        
-            done
-            echo "noneLine" >> delList.txt
             if [ -f upList.txt ];then
                 cat upList.txt |
                 while read filePath; do
                     local exPath=${filePath%/*}/
-                    if [[ -d "${localPath}/$exPath" && ! -d "${localPath}/${filePath}" ]];then
+                    if [[ (-d "${localPath}/${exPath}") && (! -d "${localPath}/${filePath}") ]];then
                         svn export --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}/${filePath}@" "${localPath}/${filePath}" --revision ${revision}
                         printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]"
                     elif [ ! -d "${localPath}/${filePath}" ];then
-                        mkdir -p "${localPath}/$exPath"
-                        printLog "创建目录[${localPath}/$exPath]"
+                        mkdir -p "${localPath}/${exPath}"
+                        printLog "创建目录[${localPath}/${exPath}]"
                         svn export --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}/${filePath}@" "${localPath}/${filePath}" --revision ${revision}
                         printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]"
                     fi
                 done
                 rm -f upList.txt
-                rm -f diff.txt
             else
                 printLog "没有文件需要更新，如果只是删除文件，下次更新会一起删除。"    
             fi
@@ -148,6 +135,19 @@ function svnDo(){
             echo "SVN对比两个版本差异[${svnPath}@${revision}]"
             svn diff --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}" --revision ${revision} --summarize > diff.txt
             printLog "SVN对比两个版本差异[${svnPath}@${revision}]"
+            rm -f delList.txt
+            rm -f upList.txt
+            cat diff.txt |
+            while read row; do
+                local op=`echo ${row} | awk '{print $1}'`
+                if [ ${op} == "D" ];then
+                    echo ${row} | awk '{$1="";print $0}' | awk -F "${svnPath}" '{print $2}' >> delList.txt
+                else
+                    echo ${row} | awk '{$1="";print $0}' | awk -F "${svnPath}" '{print $2}' >> upList.txt
+                fi        
+            done
+            echo "noneLine" >> delList.txt
+            rm -f diff.txt
             return $?;;
         "info")
             if [ $# -ne 5 ];then
@@ -219,14 +219,14 @@ function jsGrunt(){
     local ver=`date +"%Y%m%d%H%M%S"`
     local workDir=`pwd`
     local modulesPath="/usr/local/lib/node_modules/LiveApp"
-    if [[ -d ${filePath} && `ls ${filePath} | wc -l` -gt 0 ]];then
+    if [[ (-d ${filePath}) && (`ls ${filePath} | wc -l` -gt 0) ]];then
         ls ${filePath} > tempdir.txt
         cat tempdir.txt |
         while read tdir;do
             local jsnum=`find ${filePath}/${tdir} -name '*.js' | wc -l`
             local cssnum=`find ${filePath}/${tdir} -name '*.css' | wc -l`
             if [[ ${jsnum} -gt 0 || ${cssnum} -gt 0 ]];then
-                if [[ -f ${localPath}/${tdir}/package.json && -f ${localPath}/${tdir}/Gruntfile.js ]];then
+                if [[ (-f ${localPath}/${tdir}/package.json) && (-f ${localPath}/${tdir}/Gruntfile.js) ]];then
                     rm -f ${localPath}/${tdir}/node_modules
                     ln -s ${modulesPath} ${localPath}/${tdir}/node_modules
                     cd ${localPath}/${tdir}
