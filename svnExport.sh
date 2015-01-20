@@ -99,19 +99,19 @@ function svnDo(){
                     local exPath=${filePath%/*}/
                     if [[ (-d "${localPath}/${exPath}") && (! -d "${localPath}/${filePath}") ]];then
                         svn export --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}/${filePath}@" "${localPath}/${filePath}" --revision ${revision}
-                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]"
+                        local errorCode=`printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]"`
                     elif [ ! -d "${localPath}/${filePath}" ];then
                         mkdir -p "${localPath}/${exPath}"
                         printLog "创建目录[${localPath}/${exPath}]"
                         svn export --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}/${filePath}@" "${localPath}/${filePath}" --revision ${revision}
-                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]"
+                        local errorCode=`printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]"`
                     fi
                 done
                 rm -f upList.txt
             else
                 printLog "没有文件需要更新，如果只是删除文件，下次更新会一起删除。"    
             fi
-            return $?;;
+            return ${errorCode};;
         "copy")
             if [ $# -ne 7 ];then
                 printLog "[ERROR] Usage:svnDo userName passWord copy svnPath tagsPath revision logFile"
@@ -134,7 +134,7 @@ function svnDo(){
             local revision=$5
             echo "SVN对比两个版本差异[${svnPath}@${revision}]"
             svn diff --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}" --revision ${revision} --summarize > diff.txt
-            printLog "SVN对比两个版本差异[${svnPath}@${revision}]"
+            local errorCode=`printLog "SVN对比两个版本差异[${svnPath}@${revision}]"`
             rm -f delList.txt
             rm -f upList.txt
             cat diff.txt |
@@ -148,7 +148,7 @@ function svnDo(){
             done
             echo "noneLine" >> delList.txt
             rm -f diff.txt
-            return $?;;
+            return ${errorCode};;
         "info")
             if [ $# -ne 5 ];then
                 printLog "[ERROR] Usage:svnDo userName passWord info svnPath revision"
