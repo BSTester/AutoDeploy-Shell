@@ -263,10 +263,12 @@ function jsGrunt(){
                         fi
                     fi
                     rm -f ./node_modules
+                    ##################### 提交压缩文件到SVN开始 非正式环境不需要可删除 #####################
                     svnDo ${userName} ${passWord} add "`pwd`" || exit 1
                     echo "[Auto]模板${tdir} 压缩js、css和图片" > svnLog.txt
                     svnDo ${userName} ${passWord} ci "`pwd`" svnLog.txt || exit 1 
                     rm -f svnLog.txt
+                    ##################### 提交压缩文件到SVN结束 非正式环境不需要可删除 #####################
                     cd ${workDir}
                 fi
             fi
@@ -304,11 +306,15 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
     downdir="ali_downgrade/${newVersion}-${oldVersion}" #还原包导出路径
     echo "从版本[${oldVersion}]升级到新版本[${newVersion}]"
     printLog "从版本[${oldVersion}]升级到新版本[${newVersion}]"
+    ##################### 打SVN标签开始 非正式环境不需要可删除 #####################
+    ##################### 下面这行代码为检查是否存在标签，强制先更新预发布环境，非正式环境可删除 #####################
+    svnDo ${userName} ${passWord} info ${tagsPath}/tag_${newVersion} || exit 1
     echo "auto_tags:生产环境打包,SVN版本号[${newVersion}]" > svnLog.txt
     svnDo ${userName} ${passWord} log ${svnPath} ${oldVersion}:${newVersion} >> svnLog.txt
     if [[ ${newVersion} -gt ${newTagsVersion} ]];then
         svnDo ${userName} ${passWord} copy ${svnPath} ${tagsPath}/tag_${newVersion} ${newVersion} svnLog.txt || exit 1
     fi
+    ##################### 打SVN标签结束 非正式环境不需要可删除 #####################
     printLog "删除临时文件"
     rm -rf ${updir}
     rm -rf ${downdir}
@@ -319,20 +325,26 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
     svnDo ${userName} ${passWord} export ${svnPath} ${updir} "HEAD" || exit 1
     editConf ${updir} || exit 1
     mv delList.txt delList${env}Up.txt
-    printLog "还原，导出版本差异文件"
-    svnDo ${userName} ${passWord} diff ${svnPath} "${newVersion}:${oldVersion}" || exit 1
-    svnDo ${userName} ${passWord} export ${tagsPath}/tag_${oldVersion} ${downdir} "HEAD" || exit 1
-    editConf ${downdir} || exit 1
-    jsGrunt "${updir}/template" "./LiveAPP/template" || exit 1
     cp -rfv ${updir}/ upgrade${env}_${oldVersion}-${newVersion}/
     tar zcvf upgrade${env}.tar.gz upgrade${env}_${oldVersion}-${newVersion}/
     tar zcvf ali_upgrade/upgrade_${oldVersion}-${newVersion}.tar.gz upgrade${env}_${oldVersion}-${newVersion}/
     rm -rf upgrade${env}_${oldVersion}-${newVersion}
     printLog "打升级包完成"
+    ##################### 打还原包开始 不需要可删除 #####################
+    printLog "还原，导出版本差异文件"
+    svnDo ${userName} ${passWord} diff ${svnPath} "${newVersion}:${oldVersion}" || exit 1
+    svnDo ${userName} ${passWord} export ${tagsPath}/tag_${oldVersion} ${downdir} "HEAD" || exit 1
+    editConf ${downdir} || exit 1
+    mv delList.txt delList${env}Down.txt
     cp -rfv ${downdir}/ downgrade${env}_${newVersion}-${oldVersion}/
     tar zcvf downgrade${env}.tar.gz downgrade${env}_${newVersion}-${oldVersion}/
     rm -rf downgrade${env}_${newVersion}-${oldVersion}
     printLog "打还原包完成"
+    ##################### 打还原包结束 不需要可删除 #####################
+    ##################### 自动压缩开始 不需要可删除 #####################
+    jsGrunt "${updir}/template" "./LiveAPP/template" || exit 1
+    ##################### 自动压缩结束 不需要可删除 #####################
+    ##################### 打SVN标签开始 非正式环境不需要可删除 #####################
     newVersion=`svnDo ${userName} ${passWord} gr ${svnPath} 1 || exit 1`
     newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1 || exit 1`
     echo "auto_tags:生产环境打包,SVN版本号[${newVersion}]" > svnLog.txt
@@ -341,7 +353,7 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
         svnDo ${userName} ${passWord} copy ${svnPath} ${tagsPath}/tag_${newVersion} ${newVersion} svnLog.txt || exit 1
     fi  
     rm -f svnLog.txt
-    mv delList.txt delList${env}Down.txt
+    ##################### 打SVN标签结束 非正式环境不需要可删除 #####################
     echo ${newVersion} > tagsVersion
     exit 0
 else
