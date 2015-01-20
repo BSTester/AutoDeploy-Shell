@@ -129,9 +129,12 @@ env="test"
 #服务器部署绝对路径                                  
 envURL="/website/html"  
 
+cd /home/www/	#根据升级包上传到服务器的目录而定
 deploy "upgrade${env}" "delList${env}Up.txt" "${envURL}" || exit 1
 updateSql "${host}" "${username}" "${password}" "${dbname}" "${sqlFile}" || exit 1
+##################### 备份开始 非正式环境不需要可删除 #####################
 backup "upgrade${env}.tar.gz" "/home/www/backup" || exit 1
 backup "delList${env}Up.txt" "/home/www/backup" || exit 1
 backup "downgrade${env}.tar.gz" "/home/www/backup" || exit 1
 backup "delList${env}Down.txt" "/home/www/backup" || exit 1
+##################### 备份结束 非正式环境不需要可删除 #####################
