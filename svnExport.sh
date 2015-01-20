@@ -18,7 +18,7 @@ function printLog(){
         exit 1
     fi
     if [ ${errorCode} -ne 0 ];then
-        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR]#${logInfo}" | tee --append ${logPath}/svnRuntimeLog.txt
+        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] ${logInfo}" | tee --append ${logPath}/svnRuntimeLog.txt
         return 1
     else
         echo `date +"%Y-%m-%d %H:%M:%S"` "${logInfo}" >> ${logPath}/svnRuntimeLog.txt
