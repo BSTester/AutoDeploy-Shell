@@ -167,7 +167,6 @@ function svnDo(){
             fi
             local svnPath=$4
             local revision=$5
-            echo "SVN获取[${tagsPath}]的日志"
             svn log --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}" --revision ${revision}
             printLog "SVN获取[${tagsPath}]的日志"
             return $?;;
