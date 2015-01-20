@@ -99,19 +99,19 @@ function svnDo(){
                     local exPath=${filePath%/*}/
                     if [[ (-d "${localPath}/${exPath}") && (! -d "${localPath}/${filePath}") ]];then
                         svn export --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}/${filePath}@" "${localPath}/${filePath}" --revision ${revision}
-                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" || exit 1
+                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" || local errorCode=$? && exit 1
                     elif [ ! -d "${localPath}/${filePath}" ];then
                         mkdir -p "${localPath}/${exPath}"
                         printLog "创建目录[${localPath}/${exPath}]"
                         svn export --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}/${filePath}@" "${localPath}/${filePath}" --revision ${revision}
-                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" || exit 1
+                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" || local errorCode=$? && exit 1
                     fi
                 done
                 rm -f upList.txt
             else
-                printLog "没有文件需要更新，如果只是删除文件，下次更新会一起删除。"    
+                printLog "没有文件需要更新，如果只是删除文件，下次更新会一起删除。" || local errorCode=$?   
             fi
-            return $?;;
+            return ${errorCode};;
         "copy")
             if [ $# -ne 7 ];then
                 printLog "[ERROR] Usage:svnDo userName passWord copy svnPath tagsPath revision logFile"
