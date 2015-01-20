@@ -8,7 +8,7 @@
 #Function:  printLog()
 #Author:    归根落叶
 #Todo:  打印日志
-#Usage: logInfo(日志信息)
+#Param: logInfo(日志信息)
 logPath="`pwd`"     #日志存放路径
 function printLog(){
     errorCode=$?
@@ -28,7 +28,7 @@ function printLog(){
 #Function:  svnDo()
 #Author:    归根落叶
 #Todo:  操作SVN
-#Usage: userName(用户名)
+#Param: userName(用户名)
 #       passWord(密码)
 #       operation[co(签出)|up(更新)|add(新增)|ci(提交)|export(导出)|copy(打分支|标签)|diff(对比两个版本)|info(获取信息)|log(打印日志)|gr(获取版本号)]
 #       svnPath(路径1)
@@ -186,7 +186,7 @@ function svnDo(){
 #Function:  editConf()
 #Author:    归根落叶
 #Todo:  修改配置文件
-#Usage: filePath(导出文件路径)
+#Param: filePath(导出文件路径)
 function editConf(){
     if [ $# -ne 1 ];then
         printLog "Usage:editConf filePath"
@@ -204,7 +204,7 @@ function editConf(){
 #Function:  jsGrunt()
 #Author:    归根落叶
 #Todo:  Grunt自动压缩js、css、图片
-#Usage: filePath(源文件路径),localPath(SVN本地工作目录)
+#Param: filePath(源文件路径),localPath(SVN本地工作目录)
 function jsGrunt(){
     if [ $# -ne 2 ];then
         printLog "Usage:jsGrunt filePath localPath"
