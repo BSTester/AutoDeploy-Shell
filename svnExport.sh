@@ -296,7 +296,7 @@ printLog "获取最新的版本号"
 newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1 || exit 1`
 if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是数字
     if [ -f tagsVersion ];then
-        oldVersion=`cat tagsVersion` && [[ ${oldVersion} -gt 0 ]] || printLog "获取上次更新的版本号" || exit 1
+        oldVersion=`cat tagsVersion` && [[ ${oldVersion} -gt 0 ]] || printLog "获取上次更新的版本号出错" || exit 1
     fi  
     if [[ ${oldVersion} -eq ${newVersion} ]];then
         echo "没有新版本更新，目前新版本号为[${newVersion}]"
@@ -308,7 +308,7 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
     printLog "从版本[${oldVersion}]升级到新版本[${newVersion}]"
     ##################### 打SVN标签开始 非正式环境不需要可删除 #####################
     ##################### 下面这行代码为检查是否存在标签，强制先更新预发布环境，非正式环境可删除 #####################
-    svnDo ${userName} ${passWord} info ${tagsPath}/tag_${newVersion} || exit 1
+    svnDo ${userName} ${passWord} info ${tagsPath}/tag_${newVersion} "HEAD" || exit 1
     echo "auto_tags:生产环境打包,SVN版本号[${newVersion}]" > svnLog.txt
     svnDo ${userName} ${passWord} log ${svnPath} ${oldVersion}:${newVersion} >> svnLog.txt
     if [[ ${newVersion} -gt ${newTagsVersion} ]];then
