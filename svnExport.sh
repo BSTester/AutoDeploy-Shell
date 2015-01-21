@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 ################################################
 #   Todo:自动从SVN配置库获取代码，导出差异文件。  
 #   Author:归根落叶
@@ -9,19 +9,22 @@
 #Author:    归根落叶
 #Todo:  打印日志
 #Param: logInfo(日志信息)
-logPath="`pwd`"     #日志存放路径
+logPath="`pwd`/logs"     #日志存放路径
 function printLog(){
     local errorCode=$?
     local logInfo=$1
+    if [ ! -d ${logPath} ];then
+        mkdir -p ${logPath}
+    fi
     if [ $# -ne 1 ];then
-        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] Usage:printLog logInfo" | tee --append ${logPath}/svnRuntimeLog.txt
+        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] Usage:printLog logInfo" | tee --append ${logPath}/svnRuntimeLog-`date +"%Y-%m-%d"`.txt
         exit 1
     fi
     if [ ${errorCode} -ne 0 ];then
-        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] ${logInfo}" | tee --append ${logPath}/svnRuntimeLog.txt
+        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] ${logInfo}" | tee --append ${logPath}/svnRuntimeLog-`date +"%Y-%m-%d"`.txt
         return 1
     else
-        echo `date +"%Y-%m-%d %H:%M:%S"` "${logInfo}" >> ${logPath}/svnRuntimeLog.txt
+        echo `date +"%Y-%m-%d %H:%M:%S"` "${logInfo}" >> ${logPath}/svnRuntimeLog-`date +"%Y-%m-%d"`.txt
     fi
 }
 
@@ -99,19 +102,19 @@ function svnDo(){
                     local exPath=${filePath%/*}/
                     if [[ (-d "${localPath}/${exPath}") && (! -d "${localPath}/${filePath}") ]];then
                         svn export --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}/${filePath}@" "${localPath}/${filePath}" --revision ${revision}
-                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" || local errorCode=$? && exit 1
+                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" 
                     elif [ ! -d "${localPath}/${filePath}" ];then
                         mkdir -p "${localPath}/${exPath}"
                         printLog "创建目录[${localPath}/${exPath}]"
                         svn export --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}/${filePath}@" "${localPath}/${filePath}" --revision ${revision}
-                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" || local errorCode=$? && exit 1
+                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" 
                     fi
                 done
                 rm -f upList.txt
             else
-                printLog "没有文件需要更新，如果只是删除文件，下次更新会一起删除。" || local errorCode=$?   
+                printLog "没有文件需要更新，如果只是删除文件，下次更新会一起删除。" 
             fi
-            return ${errorCode};;
+            return $?;;
         "copy")
             if [ $# -ne 7 ];then
                 printLog "[ERROR] Usage:svnDo userName passWord copy svnPath tagsPath revision logFile"
@@ -134,7 +137,7 @@ function svnDo(){
             local revision=$5
             echo "SVN对比两个版本差异[${svnPath}@${revision}]"
             svn diff --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}" --revision ${revision} --summarize > diff.txt
-            printLog "SVN对比两个版本差异[${svnPath}@${revision}]" || exit 1
+            printLog "SVN对比两个版本差异[${svnPath}@${revision}]" 
             rm -f delList.txt
             rm -f upList.txt
             cat diff.txt |
@@ -232,7 +235,7 @@ function jsGrunt(){
                     cd ${localPath}/${tdir}
                     echo "Grunt压缩模板${tdir}的js、css和图片"
                     grunt 
-                    printLog "Grunt压缩模板${tdir}的js、css和图片" || exit 1
+                    printLog "Grunt压缩模板${tdir}的js、css和图片" 
                     if [ -d ./assets ];then
                         if [ -f ./app/tpl.php ];then
                             sed -r -i "s/init.min.js\?ver=[0-9\.]*\"/init.min.js\?ver=${ver}\"/g" ./app/tpl.php 
@@ -264,9 +267,9 @@ function jsGrunt(){
                     fi
                     rm -f ./node_modules
                     ##################### 提交压缩文件到SVN开始 非正式环境不需要可删除 #####################
-                    svnDo ${userName} ${passWord} add "`pwd`" || exit 1
+                    svnDo ${userName} ${passWord} add "`pwd`" 
                     echo "[Auto]模板${tdir} 压缩js、css和图片" > svnLog.txt
-                    svnDo ${userName} ${passWord} ci "`pwd`" svnLog.txt || exit 1 
+                    svnDo ${userName} ${passWord} ci "`pwd`" svnLog.txt 
                     rm -f svnLog.txt
                     ##################### 提交压缩文件到SVN结束 非正式环境不需要可删除 #####################
                     cd ${workDir}
@@ -289,14 +292,14 @@ passWord="passWord"
 #环境(test|pre|PRO)                                   
 env="test"      
 
-oldVersion=`svnDo ${userName} ${passWord} gr ${svnPath} 2 || exit 1`
+oldVersion=`svnDo ${userName} ${passWord} gr ${svnPath} 2`
 printLog "获取上一次更新的版本号"
-newVersion=`svnDo ${userName} ${passWord} gr ${svnPath} 1 || exit 1`
+newVersion=`svnDo ${userName} ${passWord} gr ${svnPath} 1`
 printLog "获取最新的版本号"
-newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1 || exit 1`
+newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1`
 if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是数字
     if [ -f tagsVersion ];then
-        oldVersion=`cat tagsVersion` && [[ ${oldVersion} -gt 0 ]] || printLog "获取上次更新的版本号出错" || exit 1
+        oldVersion=`cat tagsVersion` && [[ ${oldVersion} -gt 0 ]] || printLog "获取上次更新的版本号出错" && exit 1
     fi  
     if [[ ${oldVersion} -eq ${newVersion} ]];then
         echo "没有新版本更新，目前新版本号为[${newVersion}]"
@@ -308,11 +311,11 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
     printLog "从版本[${oldVersion}]升级到新版本[${newVersion}]"
     ##################### 打SVN标签开始 非正式环境不需要可删除 #####################
     ##################### 下面这行代码为检查是否存在标签，强制先更新预发布环境，非正式环境可删除 #####################
-    svnDo ${userName} ${passWord} info ${tagsPath}/tag_${newVersion} "HEAD" || exit 1
+    svnDo ${userName} ${passWord} info ${tagsPath}/tag_${newVersion} "HEAD" 
     echo "auto_tags:生产环境打包,SVN版本号[${newVersion}]" > svnLog.txt
     svnDo ${userName} ${passWord} log ${svnPath} ${oldVersion}:${newVersion} >> svnLog.txt
     if [[ ${newVersion} -gt ${newTagsVersion} ]];then
-        svnDo ${userName} ${passWord} copy ${svnPath} ${tagsPath}/tag_${newVersion} ${newVersion} svnLog.txt || exit 1
+        svnDo ${userName} ${passWord} copy ${svnPath} ${tagsPath}/tag_${newVersion} ${newVersion} svnLog.txt 
     fi
     rm -f svnLog.txt
     ##################### 打SVN标签结束 非正式环境不需要可删除 #####################
@@ -322,9 +325,9 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
     mkdir -p ${updir}
     mkdir -p ${downdir}
     printLog "升级，导出版本差异文件"
-    svnDo ${userName} ${passWord} diff ${svnPath} "${oldVersion}:${newVersion}" || exit 1
-    svnDo ${userName} ${passWord} export ${svnPath} ${updir} "HEAD" || exit 1
-    editConf ${updir} || exit 1
+    svnDo ${userName} ${passWord} diff ${svnPath} "${oldVersion}:${newVersion}" 
+    svnDo ${userName} ${passWord} export ${svnPath} ${updir} "HEAD" 
+    editConf ${updir} 
     mv delList.txt delList${env}Up.txt
     cp -rfv ${updir}/ upgrade${env}_${oldVersion}-${newVersion}/
     tar zcvf upgrade${env}.tar.gz upgrade${env}_${oldVersion}-${newVersion}/
@@ -333,9 +336,9 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
     printLog "打升级包完成"
     ##################### 打还原包开始 不需要可删除 #####################
     printLog "还原，导出版本差异文件"
-    svnDo ${userName} ${passWord} diff ${svnPath} "${newVersion}:${oldVersion}" || exit 1
-    svnDo ${userName} ${passWord} export ${tagsPath}/tag_${oldVersion} ${downdir} "HEAD" || exit 1
-    editConf ${downdir} || exit 1
+    svnDo ${userName} ${passWord} diff ${svnPath} "${newVersion}:${oldVersion}" 
+    svnDo ${userName} ${passWord} export ${tagsPath}/tag_${oldVersion} ${downdir} "HEAD" 
+    editConf ${downdir} 
     mv delList.txt delList${env}Down.txt
     cp -rfv ${downdir}/ downgrade${env}_${newVersion}-${oldVersion}/
     tar zcvf downgrade${env}.tar.gz downgrade${env}_${newVersion}-${oldVersion}/
@@ -343,15 +346,15 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
     printLog "打还原包完成"
     ##################### 打还原包结束 不需要可删除 #####################
     ##################### 自动压缩开始 不需要可删除 #####################
-    jsGrunt "${updir}/template" "./LiveAPP/template" || exit 1
+    jsGrunt "${updir}/template" "./LiveAPP/template" 
     ##################### 自动压缩结束 不需要可删除 #####################
     ##################### 打SVN标签开始 非正式环境不需要可删除 #####################
-    newVersion=`svnDo ${userName} ${passWord} gr ${svnPath} 1 || exit 1`
-    newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1 || exit 1`
+    newVersion=`svnDo ${userName} ${passWord} gr ${svnPath} 1`
+    newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1`
     echo "auto_tags:生产环境打包,SVN版本号[${newVersion}]" > svnLog.txt
     svnDo ${userName} ${passWord} log ${svnPath} ${oldVersion}:${newVersion} >> svnLog.txt
     if [[ ${newVersion} -gt ${newTagsVersion} ]];then
-        svnDo ${userName} ${passWord} copy ${svnPath} ${tagsPath}/tag_${newVersion} ${newVersion} svnLog.txt || exit 1
+        svnDo ${userName} ${passWord} copy ${svnPath} ${tagsPath}/tag_${newVersion} ${newVersion} svnLog.txt 
     fi  
     rm -f svnLog.txt
     ##################### 打SVN标签结束 非正式环境不需要可删除 #####################
