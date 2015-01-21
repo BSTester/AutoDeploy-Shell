@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 ################################################
 #   Todo:自动部署项目代码。  
 #   Author:归根落叶
@@ -9,19 +9,22 @@
 #Author:    归根落叶
 #Todo:  打印日志
 #Param: logInfo(日志信息)
-logPath="`pwd`"
+logPath="`pwd`/logs"
 function printLog(){
     local errorCode=$?
     local logInfo=$1
+    if [ ! -d ${logPath} ];then
+        mkdir -p ${logPath}
+    fi
     if [ $# -ne 1 ];then
-        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] Usage:printLog logInfo" | tee --append ${logPath}/svnRuntimeLog.txt
+        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] Usage:printLog logInfo" | tee --append ${logPath}/svnRuntimeLog-`date +"%Y-%m-%d"`.txt
         exit 1
     fi
     if [ ${errorCode} -ne 0 ];then
-        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] ${logInfo}" | tee --append ${logPath}/svnRuntimeLog.txt
+        echo `date +"%Y-%m-%d %H:%M:%S"` "[ERROR] ${logInfo}" | tee --append ${logPath}/svnRuntimeLog-`date +"%Y-%m-%d"`.txt
         return 1
     else
-        echo `date +"%Y-%m-%d %H:%M:%S"` "${logInfo}" >> ${logPath}/svnRuntimeLog.txt
+        echo `date +"%Y-%m-%d %H:%M:%S"` "${logInfo}" >> ${logPath}/svnRuntimeLog-`date +"%Y-%m-%d"`.txt
     fi
 }
 
@@ -42,11 +45,11 @@ function backup(){
     echo "备份文件[${fileName}]至[${backupPath}/${bakDate}/${bakTime}-${fileName}]"
     if [ -d ${backupPath}/${bakDate} ];then
         mv ${fileName} ${backupPath}/${bakDate}/${bakTime}-${fileName}
-        printLog "备份文件[${fileName}]至[${backupPath}/${bakDate}/${bakTime}-${fileName}]" || exit 1
+        printLog "备份文件[${fileName}]至[${backupPath}/${bakDate}/${bakTime}-${fileName}]" 
     else
         mkdir -p ${backupPath}/${bakDate}
         mv ${fileName} ${backupPath}/${bakDate}/${bakTime}-${fileName}
-        printLog "备份文件[${fileName}]至[${backupPath}/${bakDate}/${bakTime}-${fileName}]" || exit 1
+        printLog "备份文件[${fileName}]至[${backupPath}/${bakDate}/${bakTime}-${fileName}]" 
     fi
     echo "删除7天前的备份文件[${backupPath}/${delTime}]"
     rm -rf ${backupPath}/${delTime}    
@@ -80,9 +83,9 @@ function deploy(){
         fi
         echo "部署升级包[${packageFile}_*/]至[${projectPath}]"
         chown -R www.www ${packageFile}_*/
-        printLog "更改[${packageFile}_*/]权限为www.www" || exit 1
+        printLog "更改[${packageFile}_*/]权限为www.www" 
         \cp -rfv ${packageFile}_*/* ${projectPath}
-        printLog "部署升级包[${packageFile}_*/]至[${projectPath}]" || exit 1
+        printLog "部署升级包[${packageFile}_*/]至[${projectPath}]" 
         rm -rf ${packageFile}_*
         printLog "删除升级包[${packageFile}_*]"
     else
@@ -108,7 +111,7 @@ function updateSql(){
         local row=`cat ${sqlFile}`
         if [ "${row}" != "noneLine" ];then
             mysql -u"${username}" -p"${password}" -h"${host}" --default-character-set=utf8 ${dbname} < ${sqlFile}
-            printLog "自动更新数据库[${host}:${dbname}]" || exit 1
+            printLog "自动更新数据库[${host}:${dbname}]" 
         fi
     fi 
 }
@@ -130,11 +133,11 @@ env="test"
 envURL="/website/html"  
 
 cd /home/www/	#根据升级包上传到服务器的目录而定
-deploy "upgrade${env}" "delList${env}Up.txt" "${envURL}" || exit 1
-updateSql "${host}" "${username}" "${password}" "${dbname}" "${sqlFile}" || exit 1
+deploy "upgrade${env}" "delList${env}Up.txt" "${envURL}" 
+updateSql "${host}" "${username}" "${password}" "${dbname}" "${sqlFile}" 
 ##################### 备份开始 非正式环境不需要可删除 #####################
-backup "upgrade${env}.tar.gz" "/home/www/backup" || exit 1
-backup "delList${env}Up.txt" "/home/www/backup" || exit 1
-backup "downgrade${env}.tar.gz" "/home/www/backup" || exit 1
-backup "delList${env}Down.txt" "/home/www/backup" || exit 1
+backup "upgrade${env}.tar.gz" "/home/www/backup"
+backup "delList${env}Up.txt" "/home/www/backup" 
+backup "downgrade${env}.tar.gz" "/home/www/backup" 
+backup "delList${env}Down.txt" "/home/www/backup" 
 ##################### 备份结束 非正式环境不需要可删除 #####################
