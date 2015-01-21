@@ -237,7 +237,7 @@ function jsGrunt(){
                         if [ -f ./app/tpl.php ];then
                             sed -r -i "s/init.min.js\?ver=[0-9\.]*\"/init.min.js\?ver=${ver}\"/g" ./app/tpl.php 
                             sed -r -i "s/app.min.css\?ver=[0-9\.]*\"/app.min.css\?ver=${ver}\"/g" ./app/tpl.php
-                            cp -rf ./app/tpl.php ${workDir}/${filePath}/${tdir}/app/tpl.php
+                            cp -rf ./app/ ${workDir}/${filePath}/${tdir}/app/
                             printLog "自动更新版本号[./app/tpl.php]"
                         fi
                         cp -rf ./assets ${workDir}/${filePath}/${tdir}/
