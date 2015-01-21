@@ -299,7 +299,7 @@ printLog "获取最新的版本号"
 newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1`
 if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是数字
     if [ -f tagsVersion ];then
-        oldVersion=`cat tagsVersion` && [[ ${oldVersion} -gt 0 ]] || printLog "获取上次更新的版本号出错" && exit 1
+        oldVersion=`cat tagsVersion` && [[ ${oldVersion} -gt 0 ]] || printLog "获取上次更新的版本号出错"
     fi  
     if [[ ${oldVersion} -eq ${newVersion} ]];then
         echo "没有新版本更新，目前新版本号为[${newVersion}]"
