@@ -329,6 +329,9 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
     svnDo ${userName} ${passWord} export ${svnPath} ${updir} "HEAD" 
     editConf ${updir} 
     mv delList.txt delList${env}Up.txt
+    ##################### 自动压缩开始 不需要可删除 #####################
+    jsGrunt "${updir}/template" "./LiveAPP/template" 
+    ##################### 自动压缩结束 不需要可删除 #####################
     cp -rfv ${updir}/ upgrade${env}_${oldVersion}-${newVersion}/
     tar zcvf upgrade${env}.tar.gz upgrade${env}_${oldVersion}-${newVersion}/
     tar zcvf ali_upgrade/upgrade_${oldVersion}-${newVersion}.tar.gz upgrade${env}_${oldVersion}-${newVersion}/
@@ -345,9 +348,6 @@ if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是
     rm -rf downgrade${env}_${newVersion}-${oldVersion}
     printLog "打还原包完成"
     ##################### 打还原包结束 不需要可删除 #####################
-    ##################### 自动压缩开始 不需要可删除 #####################
-    jsGrunt "${updir}/template" "./LiveAPP/template" 
-    ##################### 自动压缩结束 不需要可删除 #####################
     ##################### 打SVN标签开始 非正式环境不需要可删除 #####################
     newVersion=`svnDo ${userName} ${passWord} gr ${svnPath} 1`
     newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1`
