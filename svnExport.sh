@@ -46,6 +46,7 @@ function svnDo(){
     case ${op} in
         "co")
             if [ $# -ne 6 ];then
+                echo "[ERROR] Usage:svnDo userName passWord co svnPath localPath revision"
                 printLog "[ERROR] Usage:svnDo userName passWord co svnPath localPath revision"
                 exit 1
             fi
@@ -58,6 +59,7 @@ function svnDo(){
             return $?;;
         "up")
             if [ $# -ne 5 ];then
+                echo "[ERROR] Usage:svnDo userName passWord up localPath revision"
                 printLog "[ERROR] Usage:svnDo userName passWord up localPath revision"
                 exit 1
             fi
@@ -69,6 +71,7 @@ function svnDo(){
             return $?;;
         "add")
             if [ $# -ne 4 ];then
+                echo "[ERROR] Usage:svnDo userName passWord add localPath"
                 printLog "[ERROR] Usage:svnDo userName passWord add localPath"
                 exit 1
             fi
@@ -79,6 +82,7 @@ function svnDo(){
             return $?;;
         "ci")
             if [ $# -ne 5 ];then
+                echo "[ERROR] Usage:svnDo userName passWord ci localPath logFile"
                 printLog "[ERROR] Usage:svnDo userName passWord ci localPath logFile"
                 exit 1
             fi
@@ -90,6 +94,7 @@ function svnDo(){
             return $?;;
         "export")
             if [ $# -ne 6 ];then
+                echo "[ERROR] Usage:svnDo userName passWord export svnPath localPath revision"
                 printLog "[ERROR] Usage:svnDo userName passWord export svnPath localPath revision"
                 exit 1
             fi
@@ -117,6 +122,7 @@ function svnDo(){
             return $?;;
         "copy")
             if [ $# -ne 7 ];then
+                echo "[ERROR] Usage:svnDo userName passWord copy svnPath tagsPath revision logFile"
                 printLog "[ERROR] Usage:svnDo userName passWord copy svnPath tagsPath revision logFile"
                 exit 1
             fi
@@ -130,6 +136,7 @@ function svnDo(){
             return $?;;
         "diff")
             if [ $# -ne 5 ];then
+                echo "[ERROR] Usage:svnDo userName passWord diff svnPath revision"
                 printLog "[ERROR] Usage:svnDo userName passWord diff svnPath revision"
                 exit 1
             fi
@@ -154,6 +161,7 @@ function svnDo(){
             return $?;;
         "info")
             if [ $# -ne 5 ];then
+                echo "[ERROR] Usage:svnDo userName passWord info svnPath revision"
                 printLog "[ERROR] Usage:svnDo userName passWord info svnPath revision"
                 exit 1
             fi
@@ -165,6 +173,7 @@ function svnDo(){
             return $?;;
         "log")
             if [ $# -ne 5 ];then
+                echo "[ERROR] Usage:svnDo userName passWord log svnPath revision"
                 printLog "[ERROR] Usage:svnDo userName passWord log svnPath revision"
                 exit 1
             fi
@@ -175,6 +184,7 @@ function svnDo(){
             return $?;;
         "gr")
             if [ $# -ne 5 ];then
+                echo "[ERROR] Usage:svnDo userName passWord gr svnPath getRevisionNum"
                 printLog "[ERROR] Usage:svnDo userName passWord gr svnPath getRevisionNum"
                 exit 1
             fi
@@ -184,6 +194,7 @@ function svnDo(){
             printLog "SVN获取[${svnPath}]的版本号"
             return $?;;
         *)
+            echo "[ERROR] Usage:svnDo userName passWord operation"
             printLog "[ERROR] Usage:svnDo userName passWord operation"
             exit 1
     esac    
@@ -195,6 +206,7 @@ function svnDo(){
 #Param: filePath(导出文件路径)
 function editConf(){
     if [ $# -ne 1 ];then
+        echo "[ERROR] Usage:editConf filePath"
         printLog "[ERROR] Usage:editConf filePath"
         exit 1
     fi
@@ -214,6 +226,7 @@ function editConf(){
 #Param: filePath(源文件路径),localPath(SVN本地工作目录)
 function jsGrunt(){
     if [ $# -ne 2 ];then
+        echo "[ERROR] Usage:jsGrunt filePath localPath"
         printLog "[ERROR] Usage:jsGrunt filePath localPath"
         exit 1
     fi
@@ -296,7 +309,7 @@ oldVersion=`svnDo ${userName} ${passWord} gr ${svnPath} 2`
 printLog "获取上一次更新的版本号"
 newVersion=`svnDo ${userName} ${passWord} gr ${svnPath} 1`
 printLog "获取最新的版本号"
-newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1`
+newTagsVersion=`svnDo ${userName} ${passWord} gr ${tagsPath} 1` #获取tag版本号，如果不需要打标签，需要删除
 if [[ (${oldVersion} -gt 0) && (${newVersion} -gt 0) ]];then    #判断是否是数字
     if [ -f tagsVersion ];then
         oldVersion=`cat tagsVersion` && [[ ${oldVersion} -gt 0 ]] || printLog "获取上次更新的版本号出错"
