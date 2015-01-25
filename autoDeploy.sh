@@ -34,6 +34,7 @@ function printLog(){
 #Param: fileName(备份文件名),backupPath(备份路径)
 function backup(){
     if [ $# -ne 2 ];then
+        echo "[ERROR] Usage:backup fileName backupPath"
         printLog "[ERROR] Usage:backup fileName backupPath"
         exit 1
     fi
@@ -62,6 +63,7 @@ function backup(){
 #Param: packageFile(.tar.gz部署包名),delFile(删除文件列表),projectPath(项目路径)
 function deploy(){
     if [ $# -ne 3 ];then
+        echo "[ERROR] Usage:deploy packageFile delFile projectPath"
         printLog "[ERROR] Usage:deploy packageFile delFile projectPath"
         exit 1
     fi
@@ -89,7 +91,7 @@ function deploy(){
         rm -rf ${packageFile}_*
         printLog "删除升级包[${packageFile}_*]"
     else
-    	printLog "升级包[${packageFile}.tar.gz]不存在!" && exit 1
+        printLog "升级包[${packageFile}.tar.gz]不存在!" && exit 1
     fi
 }
 
@@ -99,6 +101,7 @@ function deploy(){
 #Param: host(数据库主机地址),username(数据库用户名),password(数据库密码),dbname(数据库名),sqlFile(数据库sql文件)
 function updateSql(){
     if [ $# -ne 5 ];then
+        echo "[ERROR] Usage:updateSql host username password dbname sqlFile"
         printLog "[ERROR] Usage:updateSql host username password dbname sqlFile"
         exit 1
     fi
@@ -132,9 +135,9 @@ env="test"
 #服务器部署绝对路径                                  
 envURL="/website/html"  
 
-cd /home/www/	#根据升级包上传到服务器的目录而定
+cd /home/www/   #根据升级包上传到服务器的目录而定
 deploy "upgrade${env}" "delList${env}Up.txt" "${envURL}" 
-updateSql "${host}" "${username}" "${password}" "${dbname}" "${sqlFile}" 
+updateSql "${host}" "${username}" "${password}" "${dbname}" "${sqlFile}"    #更新数据库，不需要可删除 
 ##################### 备份开始 非正式环境不需要可删除 #####################
 backup "upgrade${env}.tar.gz" "/home/www/backup"
 backup "delList${env}Up.txt" "/home/www/backup" 
