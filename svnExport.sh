@@ -55,8 +55,8 @@ function svnDo(){
             local revision=$6
             echo "检出SVN[${svnPath}]"
             svn co --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}" "${localPath}" --revision ${revision}
-            printLog "检出SVN[${svnPath}]"
-            return $?;;
+            printLog "检出SVN[${svnPath}]" || local errorCode=$?
+            return ${errorCode};;
         "up")
             if [ $# -ne 5 ];then
                 echo "[ERROR] Usage:svnDo userName passWord up localPath revision"
@@ -67,8 +67,8 @@ function svnDo(){
             local revision=$5
             echo "更新SVN[${localPath}]"
             svn up --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${localPath}" --revision ${revision}
-            printLog "更新SVN[${localPath}]"
-            return $?;;
+            printLog "更新SVN[${localPath}]" || local errorCode=$?
+            return ${errorCode};;
         "add")
             if [ $# -ne 4 ];then
                 echo "[ERROR] Usage:svnDo userName passWord add localPath"
@@ -78,8 +78,8 @@ function svnDo(){
             local localPath=$4
             echo "SVN新增文件[${localPath}]"
             svn add --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${localPath}"
-            printLog "SVN新增文件[${localPath}]"
-            return $?;;
+            printLog "SVN新增文件[${localPath}]" || local errorCode=$?
+            return ${errorCode};;
         "ci")
             if [ $# -ne 5 ];then
                 echo "[ERROR] Usage:svnDo userName passWord ci localPath logFile"
@@ -90,8 +90,8 @@ function svnDo(){
             local logFile=$5
             echo "提交到SVN[${localPath}]"
             svn ci --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${localPath}" --file "${logFile}"
-            printLog "提交到SVN[${localPath}]"
-            return $?;;
+            printLog "提交到SVN[${localPath}]" || local errorCode=$?
+            return ${errorCode};;
         "export")
             if [ $# -ne 6 ];then
                 echo "[ERROR] Usage:svnDo userName passWord export svnPath localPath revision"
@@ -107,19 +107,19 @@ function svnDo(){
                     local exPath=${filePath%/*}/
                     if [[ (-d "${localPath}/${exPath}") && (! -d "${localPath}/${filePath}") ]];then
                         svn export --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}/${filePath}@" "${localPath}/${filePath}" --revision ${revision}
-                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" 
+                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" || local errorCode=$? 
                     elif [ ! -d "${localPath}/${filePath}" ];then
                         mkdir -p "${localPath}/${exPath}"
                         printLog "创建目录[${localPath}/${exPath}]"
                         svn export --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}/${filePath}@" "${localPath}/${filePath}" --revision ${revision}
-                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" 
+                        printLog "SVN导出文件[${svnPath}/${filePath}@${revision}]" || local errorCode=$? 
                     fi
                 done
                 rm -f upList.txt
             else
-                printLog "没有文件需要更新，如果只是删除文件，下次更新会一起删除。" 
+                printLog "没有文件需要更新，如果只是删除文件，下次更新会一起删除。" || local errorCode=$? 
             fi
-            return $?;;
+            return ${errorCode};;
         "copy")
             if [ $# -ne 7 ];then
                 echo "[ERROR] Usage:svnDo userName passWord copy svnPath tagsPath revision logFile"
@@ -132,8 +132,8 @@ function svnDo(){
             local logFile=$7
             echo "SVN打分支/标签[${tagsPath}]"
             svn copy --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}" "${tagsPath}" --revision ${revision} --file ${logFile}
-            printLog "SVN打分支/标签[${tagsPath}]"
-            return $?;;
+            printLog "SVN打分支/标签[${tagsPath}]" || local errorCode=$?
+            return ${errorCode};;
         "diff")
             if [ $# -ne 5 ];then
                 echo "[ERROR] Usage:svnDo userName passWord diff svnPath revision"
@@ -144,7 +144,7 @@ function svnDo(){
             local revision=$5
             echo "SVN对比两个版本差异[${svnPath}@${revision}]"
             svn diff --force --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}" --revision ${revision} --summarize > diff.txt
-            printLog "SVN对比两个版本差异[${svnPath}@${revision}]" 
+            printLog "SVN对比两个版本差异[${svnPath}@${revision}]" || local errorCode=$? 
             rm -f delList.txt
             rm -f upList.txt
             cat diff.txt |
@@ -158,7 +158,7 @@ function svnDo(){
             done
             echo "noneLine" >> delList.txt
             rm -f diff.txt
-            return $?;;
+            return ${errorCode};;
         "info")
             if [ $# -ne 5 ];then
                 echo "[ERROR] Usage:svnDo userName passWord info svnPath revision"
@@ -169,8 +169,8 @@ function svnDo(){
             local revision=$5
             echo "SVN获取[${tagsPath}]的信息"
             svn info --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${tagsPath}" --revision ${revision}
-            printLog "SVN获取[${tagsPath}]的信息"
-            return $?;;
+            printLog "SVN获取[${tagsPath}]的信息" || local errorCode=$?
+            return ${errorCode};;
         "log")
             if [ $# -ne 5 ];then
                 echo "[ERROR] Usage:svnDo userName passWord log svnPath revision"
@@ -180,8 +180,8 @@ function svnDo(){
             local svnPath=$4
             local revision=$5
             svn log --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}" --revision ${revision}
-            printLog "SVN获取[${tagsPath}]的日志"
-            return $?;;
+            printLog "SVN获取[${tagsPath}]的日志" || local errorCode=$?
+            return ${errorCode};;
         "gr")
             if [ $# -ne 5 ];then
                 echo "[ERROR] Usage:svnDo userName passWord gr svnPath getRevisionNum"
@@ -191,8 +191,8 @@ function svnDo(){
             local svnPath=$4
             local getRevisionNum=$5
             svn log --non-interactive --trust-server-cert --username ${userName} --password ${passWord} "${svnPath}" | grep "^r[0-9]" | awk "NR==${getRevisionNum}" | sed -n -r "s/r([0-9]*).*/\1/p"
-            printLog "SVN获取[${svnPath}]的版本号"
-            return $?;;
+            printLog "SVN获取[${svnPath}]的版本号" || local errorCode=$?
+            return ${errorCode};;
         *)
             echo "[ERROR] Usage:svnDo userName passWord operation"
             printLog "[ERROR] Usage:svnDo userName passWord operation"
