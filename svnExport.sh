@@ -2,7 +2,7 @@
 ################################################
 #   Todo:自动从SVN配置库获取代码，导出差异文件。  
 #   Author:归根落叶
-#   Blog:http://www.trongeek.com             
+#   Blog:http://www.ispenn.com             
 ################################################
 
 #Function:  printLog()
